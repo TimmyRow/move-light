@@ -17,7 +17,7 @@ async function loadPlanner() {
 
 test("shows long-lead planning tasks six weeks out", async () => {
   const app = await loadPlanner();
-  app.setState({ date: "2099-12-31", type: "solo", checked: {} });
+  app.setState({ date: "2099-12-31", type: "solo", checked: {}, custom: [] });
   const names = app.active().map((task) => task[1]);
   assert.ok(names.includes("Choose mover or truck"));
   assert.ok(names.includes("Set a moving budget"));
@@ -26,7 +26,7 @@ test("shows long-lead planning tasks six weeks out", async () => {
 test("adds address and packing tasks as moving day approaches", async () => {
   const app = await loadPlanner();
   const near = new Date(Date.now() + 1 * 86400000).toISOString().slice(0, 10);
-  app.setState({ date: near, type: "family", checked: {} });
+  app.setState({ date: near, type: "family", checked: {}, custom: [] });
   const names = app.active().map((task) => task[1]);
   assert.ok(names.includes("Forward mail"));
   assert.ok(names.includes("Pack open-first box"));
@@ -36,6 +36,6 @@ test("adds address and packing tasks as moving day approaches", async () => {
 test("keeps school-specific task out of a solo move", async () => {
   const app = await loadPlanner();
   const near = new Date(Date.now() + 1 * 86400000).toISOString().slice(0, 10);
-  app.setState({ date: near, type: "solo", checked: {} });
+  app.setState({ date: near, type: "solo", checked: {}, custom: [] });
   assert.ok(!app.active().some((task) => task[1].includes("school")));
 });
