@@ -39,3 +39,10 @@ test("keeps school-specific task out of a solo move", async () => {
   app.setState({ date: near, type: "solo", checked: {}, custom: [] });
   assert.ok(!app.active().some((task) => task[1].includes("school")));
 });
+
+test("adds travel tasks only for a long-distance move", async () => {
+  const app = await loadPlanner();
+  const near = new Date(Date.now() + 1 * 86400000).toISOString().slice(0, 10);
+  app.setState({ date: near, type: "long", checked: {}, custom: [] });
+  assert.ok(app.active().some((task) => task[1].includes("documents and chargers")));
+});
