@@ -53,3 +53,9 @@ test("restores only a valid local backup", async () => {
   assert.equal(app.restorePlan(valid).custom[0], "Book elevator");
   assert.throws(() => app.restorePlan({ app: "move-light", version: 1, state: {} }));
 });
+
+test("keeps personal moving tasks in the active plan", async () => {
+  const app = await loadPlanner();
+  app.setState({ date: "2099-01-01", type: "solo", checked: {}, custom: ["Reserve building elevator"] });
+  assert.ok(app.active().some((task) => task[1] === "Reserve building elevator"));
+});
