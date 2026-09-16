@@ -7,8 +7,8 @@ async function loadPlanner() {
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]).join("\n");
   assert.ok(script, "the planner script exists");
   const nodes = {};
-  const node = () => ({ value: "", innerHTML: "", textContent: "", style: {}, addEventListener() {}, insertAdjacentHTML() {} });
-  globalThis.document = { querySelector: (s) => nodes[s] ??= node(), querySelectorAll: () => [node(), node()], getElementById: (s) => nodes[`#${s}`] ??= node(), createElement: () => ({ click() {} }) };
+  const node = () => ({ value: "", innerHTML: "", textContent: "", style: {}, parentElement: { insertBefore() {} }, addEventListener() {}, insertAdjacentHTML() {}, click() {} });
+  globalThis.document = { querySelector: (s) => nodes[s] ??= node(), querySelectorAll: () => [node(), node()], getElementById: (s) => nodes[`#${s}`] ??= node(), createElement: () => node() };
   globalThis.localStorage = { getItem: () => null, setItem() {} };
   globalThis.confirm = () => true;
   Object.defineProperty(globalThis, "navigator", { value: { clipboard: { writeText: async () => {} } }, configurable: true });
