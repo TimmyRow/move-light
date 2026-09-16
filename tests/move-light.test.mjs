@@ -4,15 +4,15 @@ import test from "node:test";
 
 async function loadPlanner() {
   const html = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");
-  const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]).join("\n");
   assert.ok(script, "the planner script exists");
   const nodes = {};
-  const node = () => ({ value: "", innerHTML: "", textContent: "", style: {}, addEventListener() {} });
-  globalThis.document = { querySelector: (s) => nodes[s] ??= node() };
+  const node = () => ({ value: "", innerHTML: "", textContent: "", style: {}, addEventListener() {}, insertAdjacentHTML() {} });
+  globalThis.document = { querySelector: (s) => nodes[s] ??= node(), querySelectorAll: () => [node(), node()], getElementById: (s) => nodes[`#${s}`] ??= node(), createElement: () => ({ click() {} }) };
   globalThis.localStorage = { getItem: () => null, setItem() {} };
   globalThis.confirm = () => true;
   Object.defineProperty(globalThis, "navigator", { value: { clipboard: { writeText: async () => {} } }, configurable: true });
-  return new Function(`${script};return {active,getState:()=>state,setState:(value)=>state=value}`)();
+  return new Function(`${script};return {active,restorePlan,getState:()=>state,setState:(value)=>state=value}`)();
 }
 
 test("shows long-lead planning tasks six weeks out", async () => {
@@ -45,4 +45,11 @@ test("adds travel tasks only for a long-distance move", async () => {
   const near = new Date(Date.now() + 1 * 86400000).toISOString().slice(0, 10);
   app.setState({ date: near, type: "long", checked: {}, custom: [] });
   assert.ok(app.active().some((task) => task[1].includes("documents and chargers")));
+});
+
+test("restores only a valid local backup", async () => {
+  const app = await loadPlanner();
+  const valid = { app: "move-light", version: 1, state: { date: "2099-01-01", type: "solo", checked: {}, custom: ["Book elevator"] } };
+  assert.equal(app.restorePlan(valid).custom[0], "Book elevator");
+  assert.throws(() => app.restorePlan({ app: "move-light", version: 1, state: {} }));
 });
